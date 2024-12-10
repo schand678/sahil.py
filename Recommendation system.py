@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
- 
+  
 # Set page configuration
 st.set_page_config(
     page_title="Vehicle Recommendation System",
