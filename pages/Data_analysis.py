@@ -1,42 +1,33 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Title
-st.title("📊 Cluster Distribution - Debugging Step")
+st.title("📊 Basic Cluster Distribution Visualization")
 
-# File path (update if needed)
+# File path (update if necessary)
 file_path = "./clean_data.csv"
 
 try:
     # Load data
     data = pd.read_csv(file_path)
-    
-    # Debugging: Display dataset structure
-    st.write("### Dataset Structure")
-    st.write(data.head())  # Display the first 5 rows
-    st.write("### Columns in the Dataset")
-    st.write(data.columns.tolist())  # Display all column names
-    
-    # Check if 'Cluster' column exists
+
+    # Display the dataset
+    st.write("### Dataset Preview")
+    st.write(data.head())
+
+    # Verify the 'Cluster' column exists
     if 'Cluster' not in data.columns:
         st.error("The 'Cluster' column is missing in the dataset!")
     else:
-        # Count values for each cluster
+        # Count the occurrences of each cluster
         cluster_counts = data['Cluster'].value_counts()
 
-        # Debugging: Show the counts
+        # Display the counts as a table
         st.write("### Cluster Counts")
         st.write(cluster_counts)
 
-        # Create a simple bar chart
-        st.write("### Bar Chart of Cluster Distribution")
-        fig, ax = plt.subplots()
-        cluster_counts.plot(kind='bar', ax=ax, color='skyblue')
-        ax.set_title("Number of Entries per Cluster")
-        ax.set_xlabel("Cluster")
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
+        # Create a simple bar chart using Streamlit
+        st.bar_chart(cluster_counts)
 
 except FileNotFoundError:
     st.error(f"File not found at: {file_path}. Please ensure the file is in the correct location.")
