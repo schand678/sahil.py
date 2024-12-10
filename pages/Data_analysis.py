@@ -79,20 +79,7 @@ if 'mileage' in filtered_data.columns:
     st.write(f"### Data after Mileage Filter ({len(mileage_filtered_data)} rows)")
     st.dataframe(mileage_filtered_data)
 
-    # Updated Scatter Plot
-    if 'price' in mileage_filtered_data.columns:
-        st.plotly_chart(px.scatter(
-            mileage_filtered_data,
-            x='mileage',
-            y='price',
-            color='Cluster',
-            title="Price vs Mileage (Filtered by Mileage Range)",
-            labels={'mileage': 'Mileage', 'price': 'Price ($)', 'Cluster': 'Cluster ID'},
-            hover_data=['make', 'model', 'model_year']
-        ))
-else:
-    st.warning("Mileage column is required for filtering.")
-
+    
 
 
 
