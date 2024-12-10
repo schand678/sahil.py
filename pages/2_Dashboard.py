@@ -1,3 +1,3 @@
 
 import streamlit as st
-<p>this is the dashboared<p>
+st.set_page_config(page_title="Vehicle Make Clustering",)
