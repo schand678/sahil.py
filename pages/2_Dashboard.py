@@ -1,3 +1,3 @@
 
 import streamlit as st
-st.set_page_config(page_title="Vehicle Make Clustering",)
+st.title("Vehicle Make Clustering: Unlocking Sales Insights")
