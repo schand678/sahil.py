@@ -59,26 +59,35 @@ filtered_data = data[data['Cluster'].isin(selected_clusters)]
 st.write(f"### Filtered Data Preview ({len(filtered_data)} rows)")
 st.dataframe(filtered_data)
 
-# Mileage Range Slider
-if 'mileage' in filtered_data.columns:
-    min_mileage = int(filtered_data['mileage'].min())
-    max_mileage = int(filtered_data['mileage'].max())
-    mileage_range = st.slider(
-        "Select Mileage Range",
-        min_value=min_mileage,
-        max_value=max_mileage,
-        value=(min_mileage, max_mileage)
-    )
+filtered_data = data[data['Cluster'].isin(selected_clusters)]
 
-    # Filter data based on mileage range
-    mileage_filtered_data = filtered_data[
-        (filtered_data['mileage'] >= mileage_range[0]) & 
-        (filtered_data['mileage'] <= mileage_range[1])
-    ]
+# Price Histogram
+if 'price' in filtered_data.columns:
+    st.write("### Price Distribution")
     
-    st.write(f"### Data after Mileage Filter ({len(mileage_filtered_data)} rows)")
-    st.dataframe(mileage_filtered_data)
+    # Slider for dynamic price range selection
+    min_price = int(filtered_data['price'].min())
+    max_price = int(filtered_data['price'].max())
+    price_range = st.slider(
+        "Select Price Range",
+        min_value=min_price,
+        max_value=max_price,
+        value=(min_price, max_price)
+    )
+    
+    # Filter data based on selected price range
+    price_filtered_data = filtered_data[
+        (filtered_data['price'] >= price_range[0]) & 
+        (filtered_data['price'] <= price_range[1])
+    ]
 
+    # Create histogram data
+    st.write(f"Filtered {len(price_filtered_data)} vehicles within the price range ${price_range[0]} - ${price_range[1]}.")
+    st.write("Histogram shows the frequency distribution of prices.")
+    
+    st.bar_chart(price_filtered_data['price'])
+else:
+    st.warning("The 'price' column is missing in the dataset.")
     
 
 
