@@ -26,8 +26,6 @@ try:
         st.write("### Cluster Counts")
         st.write(cluster_counts)
 
-        # Create a simple bar chart using Streamlit
-        st.bar_chart(cluster_counts)
 
 except FileNotFoundError:
     st.error(f"File not found at: {file_path}. Please ensure the file is in the correct location.")
