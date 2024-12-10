@@ -48,3 +48,18 @@ else:
     st.warning("The column 'price' is required for this chart, but it is missing.")
 
 
+# Sidebar for cluster selection
+st.sidebar.header("Filter Options")
+selected_clusters = st.sidebar.multiselect(
+    "Select Clusters to Display",
+    options=data['Cluster'].unique(),
+    default=data['Cluster'].unique()
+)
+
+# Filter data based on selection
+filtered_data = data[data['Cluster'].isin(selected_clusters)]
+st.write(f"### Filtered Data Preview ({len(filtered_data)} rows)")
+st.dataframe(filtered_data)
+
+
+
