@@ -35,3 +35,17 @@ except FileNotFoundError:
 except Exception as e:
     st.error(f"An unexpected error occurred: {e}")
 
+
+
+# Average Price per Cluster
+if 'price' in data.columns:
+    st.write("### Average Price per Cluster")
+    avg_price_per_cluster = data.groupby('Cluster')['price'].mean().reset_index()
+    st.write(avg_price_per_cluster)  # Debugging: Ensure the data is aggregated correctly
+
+    # Create bar chart
+    st.bar_chart(data=avg_price_per_cluster, x='Cluster', y='price')
+else:
+    st.warning("The column 'price' is required for this chart, but it is missing.")
+
+
