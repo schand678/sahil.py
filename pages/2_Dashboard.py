@@ -5,7 +5,7 @@ import pandas as pd
 st.title("Vehicle Make Clustering: Unlocking Sales Insights")
 
 # URL of the CSV file in your GitHub repository
-csv_url = "clusterst__rows.csv"
+
 
 try:
     # Read the CSV file from GitHub
