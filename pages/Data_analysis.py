@@ -59,36 +59,36 @@ filtered_data = data[data['Cluster'].isin(selected_clusters)]
 st.write(f"### Filtered Data Preview ({len(filtered_data)} rows)")
 st.dataframe(filtered_data)
 
-filtered_data = data[data['Cluster'].isin(selected_clusters)]
+if 'price' in data.columns:
+    st.title("🔍 Price Distribution Histogram")
 
-# Price Histogram
-if 'price' in filtered_data.columns:
-    st.write("### Price Distribution")
-    
-    # Slider for dynamic price range selection
-    min_price = int(filtered_data['price'].min())
-    max_price = int(filtered_data['price'].max())
-    price_range = st.slider(
-        "Select Price Range",
+    # Price range selection
+    min_price = int(data['price'].min())
+    max_price = int(data['price'].max())
+    st.sidebar.write("### Filter Price Range")
+    price_range = st.sidebar.slider(
+        "Select the price range",
         min_value=min_price,
         max_value=max_price,
         value=(min_price, max_price)
     )
-    
+
     # Filter data based on selected price range
-    price_filtered_data = filtered_data[
-        (filtered_data['price'] >= price_range[0]) & 
-        (filtered_data['price'] <= price_range[1])
-    ]
+    filtered_data = data[(data['price'] >= price_range[0]) & (data['price'] <= price_range[1])]
 
-    # Create histogram data
-    st.write(f"Filtered {len(price_filtered_data)} vehicles within the price range ${price_range[0]} - ${price_range[1]}.")
-    st.write("Histogram shows the frequency distribution of prices.")
-    
-    st.bar_chart(price_filtered_data['price'])
+    # Create bins for the histogram
+    num_bins = 20
+    bins = pd.cut(filtered_data['price'], bins=num_bins)
+    histogram_data = bins.value_counts().sort_index()
+
+    # Convert bin labels to strings for Streamlit compatibility
+    histogram_data.index = histogram_data.index.astype(str)
+
+    # Display histogram
+    st.write(f"Showing price distribution for vehicles in the range ${price_range[0]} - ${price_range[1]}")
+    st.bar_chart(histogram_data)
 else:
-    st.warning("The 'price' column is missing in the dataset.")
-
+    st.error("The 'price' column is missing in the dataset.")
 
 
 
