@@ -5,7 +5,7 @@ import pandas as pd
 st.title("Read a CSV File Directly in Streamlit")
 
 # Path to the CSV file
-file_path = "path/to/your/file.csv"  # Replace with your CSV file path
+file_path = "clusterst__rows.csv"  # Replace with your CSV file path
 
 # Read the CSV file
 try:
