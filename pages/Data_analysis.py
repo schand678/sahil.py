@@ -3,109 +3,80 @@ import pandas as pd
 import plotly.express as px
 
 # Set page configuration
-st.set_page_config(
-    page_title="Clustering Insights",
-    layout="wide"
-)
+st.set_page_config(page_title="Clustering Insights", layout="wide")
 
 # Title
-st.title("🔍 Clustering Insights")
+st.title("🔍 Vehicle Clustering Insights")
 
-# Upload Data
-st.sidebar.header("Upload Your Data")
-uploaded_file = st.sidebar.file_uploader("Upload a CSV file with your clustering data", type="csv")
+# Load Data
+@st.cache_data
+def load_data(file_path):
+    return pd.read_csv(file_path)
 
-if uploaded_file:
-    try:
-        # Load data
-        data = pd.read_csv(uploaded_file)
-        st.write("### Uploaded Data Preview")
-        st.dataframe(data.head())
+data = load_data('/mnt/data/clean_data.csv')
 
-        # Convert all column names to lowercase except for 'Cluster'
-        data.columns = [col if col == "Cluster" else col.lower() for col in data.columns]
+# Sidebar Filters
+st.sidebar.header("Filter Options")
+available_clusters = data['Cluster'].unique()
+selected_clusters = st.sidebar.multiselect(
+    "Select Clusters to Visualize",
+    options=available_clusters,
+    default=available_clusters
+)
 
-        # Debugging Output: Show column names after processing
-        st.write("### Processed Column Names")
-        st.write(data.columns.tolist())
+# Filter data by selected clusters
+filtered_data = data[data['Cluster'].isin(selected_clusters)]
 
-        # Sidebar Filters
-        st.sidebar.subheader("Filters")
-        if 'Cluster' not in data.columns:
-            st.error("Error: 'Cluster' column is missing in the uploaded dataset.")
-        else:
-            available_clusters = data['Cluster'].unique()
-            selected_cluster = st.sidebar.multiselect(
-                "Select Clusters to View",
-                options=available_clusters,
-                default=available_clusters
-            )
+# Display filtered data
+st.subheader("Filtered Data")
+st.dataframe(filtered_data)
 
-            # Filter data
-            filtered_data = data[data['Cluster'].isin(selected_cluster)]
+# Cluster Distribution
+st.subheader("Cluster Distribution")
+if 'price' in filtered_data.columns and 'mileage' in filtered_data.columns:
+    scatter_fig = px.scatter(
+        filtered_data,
+        x='mileage',
+        y='price',
+        color='Cluster',
+        hover_data=['make', 'model', 'model_year'],
+        title="Price vs Mileage by Cluster",
+        labels={"mileage": "Mileage", "price": "Price ($)"}
+    )
+    st.plotly_chart(scatter_fig)
 
-            # Display filtered data
-            st.subheader("Filtered Data")
-            st.dataframe(filtered_data)
+# Cluster Counts
+st.subheader("Cluster Counts")
+cluster_counts = filtered_data['Cluster'].value_counts().reset_index()
+cluster_counts.columns = ['Cluster', 'Count']
+bar_fig = px.bar(
+    cluster_counts,
+    x='Cluster',
+    y='Count',
+    text='Count',
+    title="Number of Vehicles in Each Cluster"
+)
+st.plotly_chart(bar_fig)
 
-            # Visualizations
-            st.subheader("Cluster Visualizations")
+# Average Price per Cluster
+if 'price' in filtered_data.columns:
+    avg_price = filtered_data.groupby('Cluster')['price'].mean().reset_index()
+    price_fig = px.bar(
+        avg_price,
+        x='Cluster',
+        y='price',
+        text='price',
+        title="Average Price by Cluster",
+        labels={"price": "Average Price ($)"}
+    )
+    st.plotly_chart(price_fig)
 
-            # Scatter Plot: Cluster Distribution
-            if 'x' in filtered_data.columns and 'y' in filtered_data.columns:
-                st.write("### Cluster Distribution")
-                fig = px.scatter(
-                    filtered_data,
-                    x="x",
-                    y="y",
-                    color="Cluster",
-                    hover_data=['make', 'model'] if 'make' in filtered_data.columns and 'model' in filtered_data.columns else None,
-                    title="Cluster Distribution"
-                )
-                st.plotly_chart(fig)
-            else:
-                st.warning("Scatter plot not shown. Columns 'x' and 'y' are missing.")
+# Key Metrics
+st.sidebar.header("Key Metrics")
+total_clusters = len(filtered_data['Cluster'].unique())
+total_vehicles = filtered_data.shape[0]
+avg_price_all = filtered_data['price'].mean() if 'price' in filtered_data.columns else 0
 
-            # Bar Chart: Count per Cluster
-            st.write("### Count of Vehicles per Cluster")
-            cluster_counts = filtered_data['Cluster'].value_counts().reset_index()
-            cluster_counts.columns = ['Cluster', 'Count']
-            fig = px.bar(
-                cluster_counts,
-                x="Cluster",
-                y="Count",
-                title="Number of Vehicles in Each Cluster",
-                text="Count"
-            )
-            st.plotly_chart(fig)
-
-            # Average Price per Cluster
-            if 'price' in filtered_data.columns:
-                st.write("### Average Price per Cluster")
-                avg_price = filtered_data.groupby('Cluster')['price'].mean().reset_index()
-                fig = px.bar(
-                    avg_price,
-                    x="Cluster",
-                    y="price",
-                    title="Average Price by Cluster",
-                    text="price"
-                )
-                st.plotly_chart(fig)
-            else:
-                st.warning("Average price visualization not shown. 'price' column is missing.")
-
-            # Insights
-            st.subheader("Key Insights")
-            total_clusters = len(filtered_data['Cluster'].unique())
-            st.metric("Total Clusters", total_clusters)
-            st.metric("Total Vehicles", filtered_data.shape[0])
-            if 'price' in filtered_data.columns:
-                avg_price_overall = filtered_data['price'].mean()
-                st.metric("Average Price Overall", f"${avg_price_overall:,.2f}")
-
-    except Exception as e:
-        st.error(f"An error occurred while processing your data: {e}")
-
-else:
-    st.write("Please upload a CSV file to visualize clustering insights.")
-
+st.sidebar.metric("Total Clusters", total_clusters)
+st.sidebar.metric("Total Vehicles", total_vehicles)
+st.sidebar.metric("Average Price", f"${avg_price_all:,.2f}")
