@@ -28,7 +28,9 @@ def load_data(file):
 
 # Recommendation function
 @st.cache_data
-def recommend_by_cluster_price_and_mileage(input_make, input_price, input_mileage, df, cluster_column='Cluster', price_tolerance=2000, mileage_tolerance=5000, top_n=5):
+def recommend_by_cluster_price_mileage_color_drivetrain(input_make, input_price, input_mileage, input_color, input_drivetrain, df, 
+                                                        cluster_column='Cluster', price_tolerance=2000, mileage_tolerance=5000, 
+                                                        top_n=5):
     """Recommend vehicles efficiently."""
     input_cluster = df[df['make'] == input_make][cluster_column].iloc[0]
     cluster_data = df[df[cluster_column] == input_cluster]
@@ -39,9 +41,11 @@ def recommend_by_cluster_price_and_mileage(input_make, input_price, input_mileag
 
     recommendations = cluster_data[
         (cluster_data['price'] >= price_lower_bound) & 
-        (cluster_data['price'] <= price_upper_bound) &
+        (cluster_data['price'] <= price_upper_bound) & 
         (cluster_data['mileage'] >= mileage_lower_bound) &  
-        (cluster_data['mileage'] <= mileage_upper_bound)
+        (cluster_data['mileage'] <= mileage_upper_bound) &
+        (cluster_data['exterior_color'].str.contains(input_color, case=False, na=False)) &
+        (cluster_data['drivetrain'].str.contains(input_drivetrain, case=False, na=False))
     ]
     recommendations['combined_difference'] = (
         abs(recommendations['price'] - input_price) +
@@ -61,20 +65,22 @@ if uploaded_file is not None:
     st.dataframe(df.head(), use_container_width=True)
 
     # Check if necessary columns are present
-    if {'make', 'price', 'Cluster', 'mileage', 'stock_type'}.issubset(df.columns):
+    if {'make', 'price', 'Cluster', 'mileage', 'stock_type', 'exterior color', 'drivetrain'}.issubset(df.columns):
         # Input Section
         st.sidebar.header("📊 Input Parameters")
         input_make = st.sidebar.selectbox("Select Vehicle Make", df['make'].unique())
         input_price = st.sidebar.number_input("Enter Vehicle Price ($)", min_value=0, value=20000, step=1000)
         input_mileage = st.sidebar.number_input("Enter Vehicle Mileage (km)", min_value=0, value=50000, step=1000)
+        input_color = st.sidebar.text_input("Enter Preferred Exterior Color", value="Black")
+        input_drivetrain = st.sidebar.selectbox("Select Drivetrain", df['drivetrain'].unique())
         price_tolerance = st.sidebar.slider("Price Tolerance ($)", min_value=500, max_value=10000, value=2000, step=500)
         mileage_tolerance = st.sidebar.slider("Mileage Tolerance (km)", min_value=1000, max_value=20000, value=5000, step=1000)
         top_n = st.sidebar.slider("Number of Recommendations", min_value=1, max_value=20, value=5)
 
         # Get Recommendations
         if st.sidebar.button("💡 Get Recommendations"):
-            recommendations = recommend_by_cluster_price_and_mileage(
-                input_make, input_price, input_mileage, df,
+            recommendations = recommend_by_cluster_price_mileage_color_drivetrain(
+                input_make, input_price, input_mileage, input_color, input_drivetrain, df,
                 cluster_column='Cluster', price_tolerance=price_tolerance,
                 mileage_tolerance=mileage_tolerance, top_n=top_n
             )
@@ -85,9 +91,9 @@ if uploaded_file is not None:
 
                 # Step 1: Loosen tolerances
                 expanded_recommendations = df[
-                    (df['price'] >= input_price - 2 * price_tolerance) &
-                    (df['price'] <= input_price + 2 * price_tolerance) &
-                    (df['mileage'] >= input_mileage - 2 * mileage_tolerance) &
+                    (df['price'] >= input_price - 2 * price_tolerance) & 
+                    (df['price'] <= input_price + 2 * price_tolerance) & 
+                    (df['mileage'] >= input_mileage - 2 * mileage_tolerance) & 
                     (df['mileage'] <= input_mileage + 2 * mileage_tolerance)
                 ]
 
@@ -115,10 +121,10 @@ if uploaded_file is not None:
             else:
                 # Show strict recommendations
                 st.subheader("📋 Recommendations (Strict Criteria)")
-                st.markdown(f"### Recommendations for `{input_make}` near price `${input_price}` and mileage `{input_mileage}`:")
+                st.markdown(f"### Recommendations for `{input_make}` near price `${input_price}`, mileage `{input_mileage}`, color `{input_color}`, and drivetrain `{input_drivetrain}`:")
                 st.dataframe(recommendations)
     else:
-        st.error("⚠️ The dataset must contain the columns: 'make', 'price', 'Cluster', 'mileage', and 'stock_type'.")
+        st.error("⚠️ The dataset must contain the columns: 'make', 'price', 'Cluster', 'mileage', 'stock_type', 'exterior_color', and 'drivetrain'.")
 else:
     st.warning("📥 Upload a CSV file to start!")
 
